@@ -6,9 +6,8 @@ import { useState, useEffect, useRef } from "react"
 import { HexColorPicker } from "react-colorful"
 import { colord, extend } from "colord"
 import harmoniesPlugin from "colord/plugins/harmonies"
-
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion } from "framer-motion"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 
 extend([harmoniesPlugin])
@@ -19,8 +18,8 @@ type ColorPalette = {
 }
 
 export default function ColorPaletteGenerator() {
-  const [selectedColor, setSelectedColor] = useState("#000000")
-  const [hexInput, setHexInput] = useState("#000000")
+  const [selectedColor, setSelectedColor] = useState("#6366F1")
+  const [hexInput, setHexInput] = useState("#6366F1")
   const [palettes, setPalettes] = useState<ColorPalette[]>([])
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [imagePalette, setImagePalette] = useState<string[]>([])
@@ -28,6 +27,7 @@ export default function ColorPaletteGenerator() {
 
   useEffect(() => {
     setHexInput(selectedColor)
+    generatePalettes()
   }, [selectedColor])
 
   useEffect(() => {
@@ -123,68 +123,75 @@ export default function ColorPaletteGenerator() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Color Palette Generator</h1>
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="w-full md:w-1/3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Select a Color</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-8">
+      <h1 className="text-4xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+        LFG Color Palette Generator
+      </h1>
+      <div className="flex flex-col lg:flex-row gap-8">
+        <Card className="w-full lg:w-1/3 bg-gray-800 border-gray-700">
+          <CardContent className="p-6 space-y-6">
+            <div className="flex justify-center">
               <HexColorPicker color={selectedColor} onChange={setSelectedColor} />
-              <Input
-                type="text"
-                value={hexInput}
-                onChange={handleHexChange}
-                placeholder="#000000"
-                className="font-mono"
-              />
-              <Input type="file" accept="image/*" onChange={handleImageUpload} />
-              {uploadedImage && (
-                <>
-                  <img src={uploadedImage || "/placeholder.svg"} alt="Uploaded image" className="max-w-full" />
-                  <canvas ref={canvasRef} style={{ display: "none" }} />
-                  <div className="grid grid-cols-3 gap-2">
-                    {imagePalette.map((color, index) => (
-                      <div key={index} className="text-center">
-                        <div
-                          className="w-full h-12 border border-gray-300"
-                          style={{ backgroundColor: color }}
-                          onClick={() => setSelectedColor(color)}
-                        ></div>
-                        <span className="text-xs font-mono">{color}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-              <Button className="w-full" onClick={generatePalettes}>
-                Generate Palettes
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="w-full md:w-2/3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {palettes.map((palette, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle>{palette.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col space-y-2">
-                    {palette.colors.map((color, colorIndex) => (
-                      <div key={colorIndex} className="flex items-center">
-                        <div className="w-12 h-12 border border-gray-300" style={{ backgroundColor: color }}></div>
-                        <span className="ml-4 font-mono">{color.toUpperCase()}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+            </div>
+            <Input
+              type="text"
+              value={hexInput}
+              onChange={handleHexChange}
+              placeholder="#000000"
+              className="font-mono bg-gray-700 border-gray-600 text-white"
+            />
+            <div className="relative">
+              <Input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="image-upload" />
+              <label
+                htmlFor="image-upload"
+                className="block w-full py-2 px-4 text-center bg-gradient-to-r from-purple-500 to-pink-500 rounded-md cursor-pointer hover:from-purple-600 hover:to-pink-600 transition-colors"
+              >
+                Upload Image
+              </label>
+            </div>
+            {uploadedImage && (
+              <>
+                <img src={uploadedImage || "/placeholder.svg"} alt="Uploaded image" className="max-w-full rounded-md" />
+                <canvas ref={canvasRef} style={{ display: "none" }} />
+                <div className="grid grid-cols-3 gap-2">
+                  {imagePalette.map((color, index) => (
+                    <motion.div
+                      key={index}
+                      className="text-center cursor-pointer"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setSelectedColor(color)}
+                    >
+                      <div className="w-full h-12 rounded-md" style={{ backgroundColor: color }}></div>
+                      <span className="text-xs font-mono mt-1 block text-white">{color}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <div className="w-full lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {palettes.map((palette, index) => (
+            <Card key={index} className="bg-gray-800 border-gray-700">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-semibold mb-4 text-white">{palette.name}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {palette.colors.map((color, colorIndex) => (
+                    <motion.div
+                      key={colorIndex}
+                      className="flex-1 min-w-[100px] text-center"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <div className="h-20 rounded-md mb-2" style={{ backgroundColor: color }}></div>
+                      <span className="text-xs font-mono text-white">{color.toUpperCase()}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </div>
